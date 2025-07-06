@@ -180,3 +180,8 @@ ansible_ssh_private_key_file=./devops-pcc.pem
 ansible_user=ubuntu
 ```
 4. Run ansible all -i inventory.ini -m ping
+5. Create instance-file.yaml
+6. Run command
+```
+ ansible-playbook -i inventory.ini ../mern-gallery-sample-app/instance-file.yaml
+ ```
