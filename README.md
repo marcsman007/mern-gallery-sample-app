@@ -189,3 +189,11 @@ ansible_user=ubuntu
  ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/mongodb/playbook.yaml --limit mongo
  ```
+ 8. Created a backend server using playbook.
+ ```
+ ansible-playbook -i inventory.ini ../mern-gallery-sample-app/backend-instance/playbook.yaml --limit backend
+ ```
+ 9. Created a frontend server using playbook.
+ ```
+ ansible-playbook -i inventory.ini ../mern-gallery-sample-app/frontend-instance/playbook.yaml --limit frontend
+ ```
