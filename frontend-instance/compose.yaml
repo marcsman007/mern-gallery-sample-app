@@ -1,0 +1,22 @@
+services:
+  frontend:
+    image: mjmacaburas/mern-frontend:latest
+    expose:
+      - 3000
+    networks:
+      - webnet
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - frontend
+    networks:
+      - webnet
+
+networks:
+  webnet:

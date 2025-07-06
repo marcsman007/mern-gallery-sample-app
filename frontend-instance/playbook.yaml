@@ -1,0 +1,30 @@
+---
+- name: Deploy Frontend Stack to Remote Instance
+  hosts: frontend
+  become: yes
+  vars:
+    project_root: /opt/app  # Remote deploy directory
+
+  tasks:
+    - name: Create target project directory
+      file:
+        path: "{{ project_root }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy compose.yml
+      copy:
+        src: compose.yml
+        dest: "{{ project_root }}/compose.yml"
+        mode: '0644'
+
+    - name: Copy nginx.conf
+      copy:
+        src: nginx.conf
+        dest: "{{ project_root }}/nginx.conf"
+        mode: '0644'
+
+    - name: Run Docker Compose
+      command: docker-compose -f compose.yml up --build -d
+      args:
+        chdir: "{{ project_root }}"
