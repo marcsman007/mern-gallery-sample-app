@@ -1,0 +1,43 @@
+---
+- name: Deploy backend compose file to backend instance
+  hosts: backend
+  become: yes
+  vars:
+    backend_path: /home/ec2-user/mern-gallery-sample-app/backend
+    backend_user: ec2-user
+
+  tasks:
+    - name: Create backend directory if it doesn't exist
+      file:
+        path: "{{ backend_path }}"
+        state: directory
+        owner: "{{ backend_user }}"
+        group: "{{ backend_user }}"
+        mode: '0755'
+
+    - name: Copy backend docker-compose file
+      copy:
+        dest: "{{ backend_path }}/compose.yml"
+        content: |
+          services:
+            backend:
+              image: mjmacaburas/mern-backend:latest
+              ports:
+                - 5000:5000
+              env_file:
+                - .env
+        owner: "{{ backend_user }}"
+        group: "{{ backend_user }}"
+        mode: '0644'
+
+    - name: Copy .env file for backend (Amazon Linux)
+      copy:
+        src: /home/ubuntu/mern-gallery-sample-app/backend.env
+        dest: "{{ backend_path }}/.env"
+        owner: "{{ backend_user }}"
+        group: "{{ backend_user }}"
+        mode: '0600'
+    - name: Run backend with Docker Compose
+      command: docker-compose -f compose.yml up -d
+      args:
+        chdir: "{{ backend_path }}"

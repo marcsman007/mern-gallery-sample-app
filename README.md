@@ -185,3 +185,7 @@ ansible_user=ubuntu
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/instance-file.yaml
  ```
+ 7. Created a mongodb server using playbook.
+ ```
+ ansible-playbook -i inventory.ini ../mern-gallery-sample-app/mongodb/playbook.yaml --limit mongo
+ ```
