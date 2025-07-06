@@ -3,7 +3,7 @@
   hosts: frontend
   become: yes
   vars:
-    project_root: /opt/app  # Remote deploy directory
+    project_root: /opt/app
 
   tasks:
     - name: Create target project directory
