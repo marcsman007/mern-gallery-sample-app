@@ -150,3 +150,33 @@ docker compose -f compose.yml up -d --build
 >
 > To use `VITE_SERVER_HOSTNAME` always run this command first `export VITE_SERVER_HOSTNAME=$(hostname)` in whatever environment you are deploying.
 
+## Deployment Steps
+
+1. Create VPC on AWS.
+2. - Create an IAM user with S3 access.
+   - Create EC2 instances.
+   - Create an S3 Bucket.
+3. On bastion EC2 instance, install Ansible and create inventory.ini
+```
+[backend]
+backend-instance-1 ansible_host=10.0.2.224
+
+[mongo]
+mongodb-server ansible_host=10.0.2.159
+
+[frontend]
+frontend-instance-2 ansible_host=10.0.1.40
+
+[backend:vars]
+ansible_user=ec2-user
+ansible_ssh_private_key_file=./devops-pcc.pem
+
+[frontend:vars]
+ansible_user=ec2-user
+ansible_ssh_private_key_file=./devops-pcc.pem
+
+[mongo:vars]
+ansible_ssh_private_key_file=./devops-pcc.pem
+ansible_user=ubuntu
+```
+4. Run ansible all -i inventory.ini -m ping
