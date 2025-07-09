@@ -1,23 +1,24 @@
 ---
-- name: Deploy backend compose file to backend instance
+- name: Provision and deploy backend service
   hosts: backend
-  become: yes
+  become: true
+
   vars:
-    backend_path: /home/ec2-user/mern-gallery-sample-app/backend
-    backend_user: ec2-user
+    app_dir: /home/ec2-user/mern-gallery-sample-app/backend
+    app_owner: ec2-user
 
   tasks:
-    - name: Create backend directory if it doesn't exist
-      file:
-        path: "{{ backend_path }}"
+    - name: Ensure backend deployment directory exists
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
         state: directory
-        owner: "{{ backend_user }}"
-        group: "{{ backend_user }}"
+        owner: "{{ app_owner }}"
+        group: "{{ app_owner }}"
         mode: '0755'
 
-    - name: Copy backend docker-compose file
-      copy:
-        dest: "{{ backend_path }}/compose.yml"
+    - name: Deploy Docker Compose definition for backend
+      ansible.builtin.copy:
+        dest: "{{ app_dir }}/compose.yml"
         content: |
           services:
             backend:
@@ -26,24 +27,24 @@
                 - 5000:5000
               env_file:
                 - .env
-        owner: "{{ backend_user }}"
-        group: "{{ backend_user }}"
+        owner: "{{ app_owner }}"
+        group: "{{ app_owner }}"
         mode: '0644'
 
-    - name: Copy .env file for backend (Amazon Linux)
-      copy:
-        src: /home/ubuntu/mern-gallery-sample-app/backend.env  # path on your control node
-        dest: "{{ backend_path }}/.env"
-        owner: "{{ backend_user }}"
-        group: "{{ backend_user }}"
+    - name: Place environment file on target host
+      ansible.builtin.copy:
+        src: /home/ubuntu/mern-gallery-sample-app/backend.env
+        dest: "{{ app_dir }}/.env"
+        owner: "{{ app_owner }}"
+        group: "{{ app_owner }}"
         mode: '0600'
 
-    - name: Pull latest backend image
-      command: docker-compose -f compose.yml pull
+    - name: Fetch latest backend image from Docker Hub
+      ansible.builtin.shell: docker-compose -f compose.yml pull
       args:
-        chdir: "{{ backend_path }}"
+        chdir: "{{ app_dir }}"
 
-    - name: Run backend with Docker Compose
-      command: docker-compose -f compose.yml up -d
+    - name: Launch backend service in detached mode
+      ansible.builtin.shell: docker-compose -f compose.yml up -d
       args:
-        chdir: "{{ backend_path }}"
+        chdir: "{{ app_dir }}"
