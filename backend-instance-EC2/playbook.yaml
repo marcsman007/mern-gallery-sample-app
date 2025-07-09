@@ -32,11 +32,17 @@
 
     - name: Copy .env file for backend (Amazon Linux)
       copy:
-        src: /home/ubuntu/mern-gallery-sample-app/backend.env
+        src: /home/ubuntu/mern-gallery-sample-app/backend.env  # path on your control node
         dest: "{{ backend_path }}/.env"
         owner: "{{ backend_user }}"
         group: "{{ backend_user }}"
         mode: '0600'
+
+    - name: Pull latest backend image
+      command: docker-compose -f compose.yml pull
+      args:
+        chdir: "{{ backend_path }}"
+
     - name: Run backend with Docker Compose
       command: docker-compose -f compose.yml up -d
       args:
