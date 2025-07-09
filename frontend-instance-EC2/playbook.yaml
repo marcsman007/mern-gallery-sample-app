@@ -20,9 +20,14 @@
 
     - name: Copy nginx.conf
       copy:
-        src: nginx.conf
-        dest: "{{ project_root }}/nginx.conf"
+        src: default.conf
+        dest: "{{ project_root }}/default.conf"
         mode: '0644'
+
+    - name: Pull latest images
+      command: docker-compose -f compose.yml pull
+      args:
+        chdir: "{{ project_root }}"
 
     - name: Run Docker Compose
       command: docker-compose -f compose.yml up --build -d
