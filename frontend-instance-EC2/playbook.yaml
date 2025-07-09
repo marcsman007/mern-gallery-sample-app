@@ -1,35 +1,72 @@
+# ---
+# - name: Deploy Frontend Stack to Remote Instance
+#   hosts: frontend
+#   become: yes
+#   vars:
+#     project_root: /opt/app
+
+#   tasks:
+#     - name: Create target project directory
+#       file:
+#         path: "{{ project_root }}"
+#         state: directory
+#         mode: '0755'
+
+#     - name: Copy compose.yml
+#       copy:
+#         src: compose.yml
+#         dest: "{{ project_root }}/compose.yml"
+#         mode: '0644'
+
+#     - name: Copy nginx.conf
+#       copy:
+#         src: default.conf
+#         dest: "{{ project_root }}/default.conf"
+#         mode: '0644'
+
+#     - name: Pull latest images
+#       command: docker-compose -f compose.yml pull
+#       args:
+#         chdir: "{{ project_root }}"
+
+#     - name: Run Docker Compose
+#       command: docker-compose -f compose.yml up --build -d
+#       args:
+#         chdir: "{{ project_root }}"
+
 ---
-- name: Deploy Frontend Stack to Remote Instance
+- name: Set up and launch frontend stack remotely
   hosts: frontend
-  become: yes
+  become: true
+
   vars:
-    project_root: /opt/app
+    deploy_dir: /opt/app
 
   tasks:
-    - name: Create target project directory
-      file:
-        path: "{{ project_root }}"
+    - name: Ensure deployment directory exists
+      ansible.builtin.file:
+        path: "{{ deploy_dir }}"
         state: directory
         mode: '0755'
 
-    - name: Copy compose.yml
-      copy:
+    - name: Transfer Docker Compose configuration
+      ansible.builtin.copy:
         src: compose.yml
-        dest: "{{ project_root }}/compose.yml"
+        dest: "{{ deploy_dir }}/compose.yml"
         mode: '0644'
 
-    - name: Copy nginx.conf
-      copy:
+    - name: Upload Nginx configuration
+      ansible.builtin.copy:
         src: default.conf
-        dest: "{{ project_root }}/default.conf"
+        dest: "{{ deploy_dir }}/default.conf"
         mode: '0644'
 
-    - name: Pull latest images
-      command: docker-compose -f compose.yml pull
+    - name: Pull updated Docker images
+      ansible.builtin.shell: docker-compose -f compose.yml pull
       args:
-        chdir: "{{ project_root }}"
+        chdir: "{{ deploy_dir }}"
 
-    - name: Run Docker Compose
-      command: docker-compose -f compose.yml up --build -d
+    - name: Build and run containers in detached mode
+      ansible.builtin.shell: docker-compose -f compose.yml up --build -d
       args:
-        chdir: "{{ project_root }}"
+        chdir: "{{ deploy_dir }}"
