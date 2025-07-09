@@ -1,33 +1,51 @@
 name: Build and Deploy via Bastion
 
 on:
-  workflow_dispatch:  # Trigger manually from GitHub UI
+  push:
+    branches: [main]       # ✅ Auto-trigger on push to main
+  workflow_dispatch:       # ✅ Manual trigger from GitHub UI
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: 🧾 Checkout repository
+        uses: actions/checkout@v3
 
-    # ====== Docker Hub Login ======
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # ===== Docker Hub Login =====
+      - name: 🔐 Authenticate to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # ====== Build & Push Backend ======
-    - name: Build backend image
-      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mern-backend:latest ./backend
+      # ===== Build & Push Backend =====
+      - name: 📦 Build backend Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mern-backend:latest ./backend
 
-    - name: Push backend image
-      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/mern-backend:latest
+      - name: 🚀 Push backend image to Docker Hub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/mern-backend:latest
 
-    # ====== Build & Push Frontend ======
-    - name: Build frontend image
-      run: docker build --build-arg VITE_BACKEND_ENDPOINT=/api --build-arg VITE_SERVER_HOSTNAME=$HOSTNAME -t ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest ./frontend
+      # ===== Build & Push Frontend =====
+      - name: 📦 Build frontend Docker image
+        run: docker build --build-arg VITE_SERVER_HOSTNAME=$HOSTNAME -t ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest ./frontend
 
-    - name: Push frontend image
-      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest
+      - name: 🚀 Push frontend image to Docker Hub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest
+
+      # ===== Deploy via Bastion using Ansible =====
+      - name: 📡 Deploy via Bastion with Ansible
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.BASTION_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            cd ansible
+
+            echo "▶ Deploying backend..."
+            ansible-playbook -i inventory.ini ../mern-gallery-sample-app/backend-instance-EC2/playbook.yaml --limit backend
+
+            echo "▶ Deploying frontend..."
+            ansible-playbook -i inventory.ini ../mern-gallery-sample-app/frontend-instance-EC2/playbook.yaml --limit frontend
