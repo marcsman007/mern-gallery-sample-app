@@ -160,12 +160,15 @@ docker compose -f compose.yml up -d --build
 ```
 [backend]
 backend-instance-1 ansible_host=10.0.2.224
+backend-instance-2 ansible_host=10.0.2.192
+backend-instance-3 ansible_host=10.0.2.75
+
+[frontend]
+frontend-instance-1 ansible_host=10.0.1.252
+frontend-instance-2 ansible_host=10.0.1.40
 
 [mongo]
 mongodb-server ansible_host=10.0.2.159
-
-[frontend]
-frontend-instance-2 ansible_host=10.0.1.40
 
 [backend:vars]
 ansible_user=ec2-user
@@ -176,24 +179,26 @@ ansible_user=ec2-user
 ansible_ssh_private_key_file=./devops-pcc.pem
 
 [mongo:vars]
-ansible_ssh_private_key_file=./devops-pcc.pem
 ansible_user=ubuntu
+ansible_ssh_private_key_file=./devops-pcc.pem
 ```
 4. Run ansible all -i inventory.ini -m ping
 5. Create instance-file.yaml
 6. Run command
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/instance-file.yaml
- ```
- 7. Created a mongodb server using playbook.
- ```
+```
+7. Created a mongodb server using playbook.
+```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/mongodb/playbook.yaml --limit mongo
- ```
- 8. Created a backend server using playbook.
- ```
+```
+8. Created a backend server using playbook.
+```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/backend-instance-EC2/playbook.yaml --limit backend
- ```
- 9. Created a frontend server using playbook.
- ```
+```
+9. Created a frontend server using playbook.
+```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/frontend-instance-EC2/playbook.yaml --limit frontend
- ```
+```
+10. Duplicate frontend and backend instances by creating an instance image and use it as ami to create frontend-instance-2, backend-instance-2 and 3 on AWS EC2.
+11. Create a Github Actions workflow to trigger CI/CD on push.
