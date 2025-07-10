@@ -30,7 +30,7 @@
       args:
         chdir: "{{ deploy_dir }}"
 
-    # - name: Build and run containers in detached mode
-    #   ansible.builtin.shell: docker-compose -f compose.yml up --build -d
-    #   args:
-    #     chdir: "{{ deploy_dir }}"
+    - name: Build and run containers in detached mode
+      ansible.builtin.shell: docker-compose -f compose.yml up --build -d
+      args:
+        chdir: "{{ deploy_dir }}"
