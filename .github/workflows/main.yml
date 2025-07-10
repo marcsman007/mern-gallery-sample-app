@@ -43,6 +43,10 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.PRIVATE_KEY }}
         script: |
+          cd mern-gallery-sample-app
+          git fetch
+          git pull
+          cd ..
           cd ansible
           
           # Deploy backend
