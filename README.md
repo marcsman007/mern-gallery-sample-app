@@ -196,7 +196,7 @@ ansible_ssh_private_key_file=./devops-pcc.pem
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/backend-instance-EC2/playbook.yaml --limit backend
 ```
-9. Change the values in the .env file with own values:
+9. Create .env file and change the values in it with own values:
 ```
 MONGODB_URI=mongodb://mongodb:27017/todos
 AWS_ACCESS_KEY_ID=test
