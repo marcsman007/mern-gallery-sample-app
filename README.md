@@ -196,9 +196,17 @@ ansible_ssh_private_key_file=./devops-pcc.pem
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/backend-instance-EC2/playbook.yaml --limit backend
 ```
-9. Created a frontend server using playbook.
+9. Change the values in the .env file with own values:
+```
+MONGODB_URI=mongodb://mongodb:27017/todos
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+S3_BUCKET_NAME=mysamplebucket
+AWS_REGION=us-east-1
+``` 
+10. Created a frontend server using playbook.
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/frontend-instance-EC2/playbook.yaml --limit frontend
 ```
-10. Duplicate frontend and backend instances by creating an instance image and use it as ami to create frontend-instance-2, backend-instance-2 and 3 on AWS EC2.
-11. Create a Github Actions workflow to trigger CI/CD on push.
+11. Duplicate frontend and backend instances by creating an instance image and use it as ami to create frontend-instance-2, backend-instance-2 and 3 on AWS EC2.
+12. Create a Github Actions workflow to trigger CI/CD on push.

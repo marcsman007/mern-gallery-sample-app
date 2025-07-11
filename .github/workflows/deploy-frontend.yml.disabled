@@ -1,0 +1,39 @@
+name: Deploy Frontend Only
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'frontend-instance-EC2/**'
+      - '.github/workflows/deploy-frontend.yml'
+      - 'compose.yml'
+      - 'instance-file.yaml'
+      - '.env'
+
+jobs:
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build Docker Image
+        run: |
+          docker build \
+            --build-arg VITE_SERVER_HOSTNAME=$HOSTNAME \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest \
+            ./frontend
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest
+
+      - name: SSH to Bastion and Deploy Frontend
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.BASTION_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            cd mern-gallery-sample-app
+            git fetch && git pull
+            cd ansible
+            ansible-playbook -i inventory.ini ../mern-gallery-sample-app/frontend-instance-EC2/playbook.yaml --limit frontend
