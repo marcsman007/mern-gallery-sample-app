@@ -1,0 +1,46 @@
+name: Deploy Frontend Only
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'frontend-instance-EC2/**'
+      - '.github/workflows/deploy-frontend.yml'
+      - 'compose.yml'
+      - '.env'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+    env:
+      HOSTNAME: ${{ secrets.HOSTNAME }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build frontend image
+        run: docker build --build-arg VITE_SERVER_HOSTNAME=$HOSTNAME -t ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest ./frontend
+
+      - name: Push frontend image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest
+
+      - name: Deploy Frontend via Ansible
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.BASTION_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            cd mern-gallery-sample-app
+            git fetch
+            git pull
+            cd ../ansible
+            ansible-playbook -i inventory.ini ../mern-gallery-sample-app/frontend-instance-EC2/playbook.yaml --limit frontend
