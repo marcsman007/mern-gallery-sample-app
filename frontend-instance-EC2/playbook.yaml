@@ -50,7 +50,7 @@
       ansible.builtin.shell: |
         container_id=$(docker-compose -f compose.yml ps -q frontend)
         echo "Container ID: $container_id"
-        image_id_container=$(docker inspect --format='{{.Image}}' $container_id)
+        image_id_container=$(docker inspect --format={{"{{"}}.Image{{"}}"}} $container_id)
         echo "Image ID in container: $image_id_container"
         image_id_latest=$(docker images --no-trunc -q mjmacaburas/mern-frontend:latest)
         echo "Latest image ID: $image_id_latest"
