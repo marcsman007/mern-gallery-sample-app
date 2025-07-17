@@ -40,10 +40,11 @@
       args:
         chdir: "{{ deploy_dir }}"
 
-    - name: Run containers in detached mode
-      ansible.builtin.shell: docker-compose -f compose.yml up -d --remove-orphans
+    - name: Run containers in detached mode, force recreate
+      ansible.builtin.shell: docker-compose -f compose.yml up -d --remove-orphans --force-recreate
       args:
         chdir: "{{ deploy_dir }}"
+
 
     - name: Verify frontend container is running latest image
       ansible.builtin.shell: |
