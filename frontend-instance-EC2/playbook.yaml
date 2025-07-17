@@ -57,9 +57,9 @@
           echo "Frontend container is NOT running the latest image."
           exit 1
         fi
-  args:
-    chdir: "{{ deploy_dir }}"
-  register: verify_result
-  failed_when: verify_result.rc != 0
+      args:
+        chdir: "{{ deploy_dir }}"
+      register: verify_result
+      failed_when: verify_result.rc != 0
 
 
