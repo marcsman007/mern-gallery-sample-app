@@ -223,11 +223,12 @@ AWS_REGION=us-east-1
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/frontend-instance-EC2/playbook.yaml --limit frontend
 ```
 ## Step 4: Duplicate Instances via AMI
--Create an AMI (Amazon Machine Image) of your configured backend and frontend instances.
--Launch new EC2 instances from these AMIs:
-  -frontend-instance-2
-  -backend-instance-2
-  -backend-instance-3
+- Create an AMI (Amazon Machine Image) of your configured backend and frontend instances.
+- Launch new EC2 instances from these AMIs:
+  - frontend-instance-2
+  - backend-instance-2
+  - backend-instance-3
+
 **This process ensures uniform configurations across instances without rerunning playbooks.**
 
 ## Step 5: Setup CI/CD with GitHub Actions
