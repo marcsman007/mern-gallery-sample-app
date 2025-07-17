@@ -35,13 +35,8 @@
       args:
         chdir: "{{ deploy_dir }}"
 
-    - name: Remove dangling images
-      ansible.builtin.shell: docker image prune -f
-      args:
-        chdir: "{{ deploy_dir }}"
-
-    - name: Build containers without cache and force pull
-      ansible.builtin.shell: docker-compose -f compose.yml build --no-cache --pull
+    - name: Pull updated Docker images
+      ansible.builtin.shell: docker-compose -f compose.yml pull
       args:
         chdir: "{{ deploy_dir }}"
 
@@ -49,3 +44,21 @@
       ansible.builtin.shell: docker-compose -f compose.yml up -d --remove-orphans
       args:
         chdir: "{{ deploy_dir }}"
+
+    - name: Verify frontend container is running latest image
+      ansible.builtin.shell: |
+        container_id=$(docker-compose -f compose.yml ps -q frontend)
+        image_id_container=$(docker inspect --format='{{.Image}}' $container_id)
+        image_id_latest=$(docker images -q mjmacaburas/mern-frontend:latest)
+        if [ "$image_id_container" = "$image_id_latest" ]; then
+          echo "Frontend container is running the latest image."
+          exit 0
+        else
+          echo "Frontend container is NOT running the latest image."
+          exit 1
+        fi
+      args:
+        chdir: "{{ deploy_dir }}"
+      register: verify_result
+      failed_when: verify_result.rc != 0
+
