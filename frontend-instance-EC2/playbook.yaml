@@ -25,20 +25,23 @@
         dest: "{{ deploy_dir }}/default.conf"
         mode: '0644'
 
+    - name: Stop and remove running containers
+      ansible.builtin.shell: docker-compose -f compose.yml down --remove-orphans
+      args:
+        chdir: "{{ deploy_dir }}"
+
+    - name: Remove old frontend image
+      ansible.builtin.shell: |
+        docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest || true
+      args:
+        chdir: "{{ deploy_dir }}"
+
     - name: Pull updated Docker images
       ansible.builtin.shell: docker-compose -f compose.yml pull
       args:
         chdir: "{{ deploy_dir }}"
-      become: yes
-
-    - name: Stop and remove containers
-      ansible.builtin.shell: docker-compose -f compose.yml down
-      args:
-        chdir: "{{ deploy_dir }}"
-      become: yes
 
     - name: Build and run containers in detached mode
-      ansible.builtin.shell: docker-compose -f compose.yml up --build -d --remove-orphans
+      ansible.builtin.shell: docker-compose -f compose.yml up --build -d
       args:
         chdir: "{{ deploy_dir }}"
-      become: yes
