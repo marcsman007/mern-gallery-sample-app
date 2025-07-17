@@ -150,14 +150,24 @@ docker compose -f compose.yml up -d --build
 >
 > To use `VITE_SERVER_HOSTNAME` always run this command first `export VITE_SERVER_HOSTNAME=$(hostname)` in whatever environment you are deploying.
 
-## Deployment Steps
+## Deployment Guide - Manual and Duplication via EC2 Images/AMI
 
-1. Create VPC on AWS.
-2. - Create an IAM user with S3 access.
-   - Create EC2 instances.
-   - Create an S3 Bucket.
-3. On bastion EC2 instance, install Ansible and create inventory.ini
-```
+## Step 1: Set up AWS Infrastructure
+1. **Create a VPC** in AWS.
+2. **Create an IAM User** with necessary S3 permissions.
+3. **Provision EC2 Instances:**
+   - Bastion Host (Public Subnet)
+   - Backend Servers (Private Subnet)
+   - Frontend Servers (Private Subnet)
+   - MongoDB Server (Private Subnet)
+
+4. **Create an S3 Bucket** for storing images.
+
+## Step 2: Configure Ansible on Bastion Host
+1. Install Ansible on the Bastion EC2 instance.
+2. Create an `inventory.ini` file, replacing the sample IPs and SSH key with your values:
+
+```ini
 [backend]
 backend-instance-1 ansible_host=10.0.2.224
 backend-instance-2 ansible_host=10.0.2.192
@@ -171,42 +181,54 @@ frontend-instance-2 ansible_host=10.0.1.40
 mongodb-server ansible_host=10.0.2.159
 
 [backend:vars]
-ansible_user=ec2-user
+ansible_user=ec2-user   # or 'ubuntu' if using Ubuntu
 ansible_ssh_private_key_file=./devops-pcc.pem
 
 [frontend:vars]
-ansible_user=ec2-user
+ansible_user=ec2-user   # or 'ubuntu'
 ansible_ssh_private_key_file=./devops-pcc.pem
 
 [mongo:vars]
-ansible_user=ubuntu
+ansible_user=ubuntu     # or 'ec2-user' for Amazon Linux
 ansible_ssh_private_key_file=./devops-pcc.pem
 ```
-4. Run ansible all -i inventory.ini -m ping
-5. Create instance-file.yaml
-6. Run command
+3. Verify Ansible connectivity:
+```
+ansible all -i inventory.ini -m ping
+```
+
+## Step 3: Deploy Application Components 
+1. Run the instance setup playbook:
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/instance-file.yaml
 ```
-7. Created a mongodb server using playbook.
+2. Set up MongoDB Server:
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/mongodb/playbook.yaml --limit mongo
 ```
-8. Created a backend server using playbook.
+3. Deploy Backend Servers:
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/backend-instance-EC2/playbook.yaml --limit backend
 ```
-9. Create .env file and change the values in it with own values:
+4. Configure .env file on the backend server:
 ```
-MONGODB_URI=mongodb://mongodb:27017/todos
-AWS_ACCESS_KEY_ID=test
-AWS_SECRET_ACCESS_KEY=test
-S3_BUCKET_NAME=mysamplebucket
+MONGODB_URI=mongodb://<MongoDB EC2 Private IP>:27017/todos
+AWS_ACCESS_KEY_ID=<Your IAM Access Key>
+AWS_SECRET_ACCESS_KEY=<Your IAM Secret Key>
+S3_BUCKET_NAME=<Your S3 Bucket Name>
 AWS_REGION=us-east-1
 ``` 
-10. Created a frontend server using playbook.
+5. Deploy Frontend Servers:
 ```
  ansible-playbook -i inventory.ini ../mern-gallery-sample-app/frontend-instance-EC2/playbook.yaml --limit frontend
 ```
-11. Duplicate frontend and backend instances by creating an instance image and use it as ami to create frontend-instance-2, backend-instance-2 and 3 on AWS EC2.
-12. Create a Github Actions workflow to trigger CI/CD on push.
+## Step 4: Duplicate Instances via AMI
+-Create an AMI (Amazon Machine Image) of your configured backend and frontend instances.
+-Launch new EC2 instances from these AMIs:
+  -frontend-instance-2
+  -backend-instance-2
+  -backend-instance-3
+**This process ensures uniform configurations across instances without rerunning playbooks.**
+
+## Step 5: Setup CI/CD with GitHub Actions
+Please see **README.md** on .github/workflows on how to test the CI/CD pipeline via Github Actions.
