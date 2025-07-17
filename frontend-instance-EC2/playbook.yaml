@@ -1,5 +1,5 @@
 ---
-- name: Set up and launch frontend stack remotely
+- name: Deploy and refresh frontend stack
   hosts: frontend
   become: true
 
@@ -31,8 +31,12 @@
         chdir: "{{ deploy_dir }}"
 
     - name: Remove old frontend image
-      ansible.builtin.shell: |
-        docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:latest || true
+      ansible.builtin.shell: docker rmi mjmacaburas/mern-frontend:latest || true
+      args:
+        chdir: "{{ deploy_dir }}"
+
+    - name: Remove dangling images
+      ansible.builtin.shell: docker image prune -f
       args:
         chdir: "{{ deploy_dir }}"
 
@@ -41,7 +45,12 @@
       args:
         chdir: "{{ deploy_dir }}"
 
-    - name: Build and run containers in detached mode
-      ansible.builtin.shell: docker-compose -f compose.yml up --build -d
+    - name: Build containers without cache
+      ansible.builtin.shell: docker-compose -f compose.yml build --no-cache
+      args:
+        chdir: "{{ deploy_dir }}"
+
+    - name: Run containers in detached mode
+      ansible.builtin.shell: docker-compose -f compose.yml up -d --remove-orphans
       args:
         chdir: "{{ deploy_dir }}"
