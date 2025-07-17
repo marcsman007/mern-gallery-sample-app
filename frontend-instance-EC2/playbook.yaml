@@ -49,8 +49,11 @@
     - name: Verify frontend container is running latest image
       ansible.builtin.shell: |
         container_id=$(docker-compose -f compose.yml ps -q frontend)
-        image_id_container=$(docker inspect --format='{{"{{"}}.Image{{"}}"}}' $container_id)
-        image_id_latest=$(docker images -q mjmacaburas/mern-frontend:latest)
+        echo "Container ID: $container_id"
+        image_id_container=$(docker inspect --format='{{.Image}}' $container_id)
+        echo "Image ID in container: $image_id_container"
+        image_id_latest=$(docker images --no-trunc -q mjmacaburas/mern-frontend:latest)
+        echo "Latest image ID: $image_id_latest"
         if [ "$image_id_container" = "$image_id_latest" ]; then
           echo "Frontend container is running the latest image."
           exit 0
