@@ -10,7 +10,7 @@ This document describes how to test, trigger, and manage the **CI/CD pipeline** 
 |-------------------------|-------------------|----------------------|
 | **deploy-backend.yml**  | Push to `backend/**` or manual dispatch | Builds Docker image for backend, pushes to Docker Hub, deploys to backend EC2 instances via Ansible |
 | **deploy-frontend.yml** | Push to `frontend/**` or manual dispatch | Builds Docker image for frontend, pushes to Docker Hub, deploys to frontend EC2 instances via Ansible |
-| **main.yml**            | Push to `main` branch or manual dispatch | Deploys both backend and frontend together | NOTE: THIS IS CURRENTLY DISABLED |
+| **main.yml**            | Push to `main` branch or manual dispatch | Deploys both backend and frontend together |
 
 ---
 
@@ -20,7 +20,7 @@ This document describes how to test, trigger, and manage the **CI/CD pipeline** 
 - Push code changes to:
   - `/backend/**` → triggers `deploy-backend.yml`
   - `/frontend/**` → triggers `deploy-frontend.yml`
-  - `/main` branch → triggers `main.yml` (deploys both backend & frontend)
+  - `/main` branch → triggers `main.yml` (deploys both backend & frontend) - NOTE: THIS IS CURRENTLY DISABLED
 
 ### Manually via GitHub Actions
 1. Go to your GitHub repository.
